@@ -1,6 +1,7 @@
 
 /* global ethers task */
 require('@nomiclabs/hardhat-waffle')
+require('dotenv').config()
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -24,6 +25,12 @@ module.exports = {
     optimizer: {
       enabled: true,
       runs: 200
+    }
+  },
+  networks: {
+    polygon: {
+      url: process.env.POLYGON_RPC_URL,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
     }
   }
 }
