@@ -1,6 +1,8 @@
 
 /* global ethers task */
 require('@nomiclabs/hardhat-waffle')
+require('@nomiclabs/hardhat-etherscan');
+
 require('dotenv').config()
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -31,6 +33,12 @@ module.exports = {
     polygon: {
       url: process.env.POLYGON_RPC_URL,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY]
+    },
+  },
+
+  etherscan: {
+    apiKey: {
+      polygon: process.env.POLYGONSCAN_API_KEY
     }
   }
 }
