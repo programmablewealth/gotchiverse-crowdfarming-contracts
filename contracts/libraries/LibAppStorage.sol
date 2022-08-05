@@ -28,8 +28,8 @@ struct FarmingOperation {
 }
 
 struct AppStorage {
-    FarmingOperation[] farmingOperations;
-    
+    mapping(uint256 => FarmingOperation) farmingOperations;
+    uint256 farmingOperationCount;
 }
 
 library LibAppStorage {

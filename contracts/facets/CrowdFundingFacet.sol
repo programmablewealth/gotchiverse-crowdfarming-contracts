@@ -41,7 +41,7 @@ contract CrowdFundingFacet {
         // check installation quantities are valid for the parcel size
         // check land has been surveyed at least once
 
-        uint256 newOperationId = s.farmingOperations.length;
+        uint256 newOperationId = s.farmingOperationCount;
 
         // use aavegotchi interfaces to move the land into the smart contract
         IAavegotchiRealmDiamond(aavegotchiRealmDiamond).safeTransferFrom(msg.sender, address(this), _landTokenId);
@@ -59,7 +59,8 @@ contract CrowdFundingFacet {
             true
         );
 
-        s.farmingOperations.push(farmingOperation);
+        s.farmingOperations[newOperationId] = farmingOperation;
+        s.farmingOperationCount++;
     }
 
     function withdrawLandFromOperation(uint256 _operationId, uint256 _tokenId) external {
