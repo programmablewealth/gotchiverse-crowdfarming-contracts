@@ -33,7 +33,6 @@ contract CrowdFundingFacet {
         bool _instaBuild
     ) external {
         require(_installationIds.length > 0, "Missing installation IDs");
-        require(_installationQuantities.length > 0, "Missing installation quantities");
         require(_installationIds.length == _installationQuantities.length, "Installation IDs and quantities must be the same size");
         require(msg.sender == IAavegotchiRealmDiamond(aavegotchiRealmDiamond).ownerOf(_landTokenId), "Sender must own the land parcel");
 
