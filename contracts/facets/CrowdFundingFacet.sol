@@ -1,8 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import { AppStorage, FarmingOperation, aavegotchiRealmDiamond, aavegotchiInstallationDiamond } from "../libraries/LibAppStorage.sol";
+import {
+    AppStorage, FarmingOperation,
+    aavegotchiRealmDiamond, aavegotchiInstallationDiamond
+} from "../libraries/LibAppStorage.sol";
+
 import { LibDiamond } from "../libraries/LibDiamond.sol";
+import { LibMeta } from "../libraries/LibMeta.sol";
+
 import { IAavegotchiRealmDiamond } from "../interfaces/IAavegotchiRealmDiamond.sol";
 import { IAavegotchiInstallationDiamond, InstallationType } from "../interfaces/IAavegotchiInstallationDiamond.sol";
 
@@ -53,15 +59,17 @@ contract CrowdFundingFacet {
         uint256 newOperationId = s.farmingOperationCount;
 
         // use aavegotchi interfaces to move the land into the smart contract
-        IAavegotchiRealmDiamond(aavegotchiRealmDiamond).safeTransferFrom(msg.sender, address(this), _landTokenId);
-        
+        address sender = LibMeta.msgSender();
+        // todo: implement a erc721 receiver
+        // IAavegotchiRealmDiamond(aavegotchiRealmDiamond).safeTransferFrom(sender, address(this), _landTokenId);
+
         s.farmingOperations[newOperationId] = FarmingOperation({
             operationId: newOperationId,
             landTokenId: _landTokenId,
             installationIds: _installationIds, 
             installationQuantities: _installationQuantities,
             instaBuild: _instaBuild,
-            landSupplier: msg.sender,
+            landSupplier: sender,
             budget: this.calculateBudget(_installationIds, _installationQuantities, _instaBuild),
             totalShares: _totalShares,
             sharesForLand: _sharesForLand,
@@ -71,13 +79,24 @@ contract CrowdFundingFacet {
 
         s.farmingOperationCount++;
     }
+    
+    
+    function incrementCounter() external {
+        s.counter.count++;
+    }
+
+    function getCount() external view returns(uint256) {
+        return s.counter.count;
+    }
 
     function withdrawLandFromOperation(uint256 _operationId, uint256 _tokenId) external {
-        require(msg.sender == s.farmingOperations[_operationId].landSupplier, "CrowdFundingFacet: Error - Sender must be the operation land supplier");
+        address sender = LibMeta.msgSender();
+
+        require(sender == s.farmingOperations[_operationId].landSupplier, "CrowdFundingFacet: Error - Sender must be the operation land supplier");
         require(s.farmingOperations[_operationId].landDeposited, "CrowdFundingFacet: Error - Land must be deposited for this farming operation");
         require(s.farmingOperations[_operationId].landTokenId == _tokenId, "CrowdFundingFacet: Error - Land Token ID must match what was deposited for this farming operation");
 
-        IAavegotchiRealmDiamond(aavegotchiRealmDiamond).safeTransferFrom(address(this), msg.sender, _tokenId);
+        IAavegotchiRealmDiamond(aavegotchiRealmDiamond).safeTransferFrom(address(this), sender, _tokenId);
         s.farmingOperations[_operationId].landDeposited = false;
     }
 
