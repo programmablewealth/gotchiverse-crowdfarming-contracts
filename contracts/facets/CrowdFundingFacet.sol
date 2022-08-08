@@ -18,6 +18,9 @@ contract CrowdFundingFacet {
     /// @param _installationIds array of Gotchiverse REALM installation IDs that need to be built on the land parcel (must be the same length as _installationQuantities)
     /// @param _installationQuantities array of quantities of the Gotchiverse REALM installations that need to be built on the land parcel (must be the same length as _installationIds)
     /// @param _instaBuild will GLTR be used for insta-building and insta-upgrading all installations
+    /// @param _totalShares total number of shares that will be available in this farming operation
+    /// @param _sharesForLand number of shares out of the total numbers that will be assigned to the land provider
+    /// @param _shareRatiosForMaterials FUD dominated ratios for shares offered to investors in the operation provided FUD, FOMO, ALPHA, KEK, and GLTR
     /*
         createFarmingOperation
 
@@ -30,51 +33,58 @@ contract CrowdFundingFacet {
         uint256 _landTokenId,
         uint256[] calldata _installationIds,
         uint256[] calldata _installationQuantities,
-        bool _instaBuild
+        bool _instaBuild,
+        uint256 _totalShares,
+        uint256 _sharesForLand,
+        uint256[] calldata _shareRatiosForMaterials
     ) external {
-        require(_installationIds.length > 0, "Missing installation IDs");
-        require(_installationIds.length == _installationQuantities.length, "Installation IDs and quantities must be the same size");
-        require(msg.sender == IAavegotchiRealmDiamond(aavegotchiRealmDiamond).ownerOf(_landTokenId), "Sender must own the land parcel");
+        require(_installationIds.length > 0, "CrowdFundingFacet: Error - Missing installation IDs");
+        require(_installationIds.length == _installationQuantities.length, "CrowdFundingFacet: Error - Installation IDs and quantities must be the same size");
+        require(_totalShares > _sharesForLand, "CrowdFundingFacet: Error - Total shares must be greater than the number of shares provided to the land owner");
+        require(_shareRatiosForMaterials.length == 5, "CrowdFundingFacet: Error - Must provide a share ratio for FUD, FOMO, ALPHA, KEK, and GLTR");
 
         // check installation ids are all valid
         // check installation quantities are valid for the parcel size
         // check land has been surveyed at least once
 
+        // todo: set a max % for emptyiers and emptyier management upfront
+        // todo: set a builders fee upfront
+
         uint256 newOperationId = s.farmingOperationCount;
 
         // use aavegotchi interfaces to move the land into the smart contract
         IAavegotchiRealmDiamond(aavegotchiRealmDiamond).safeTransferFrom(msg.sender, address(this), _landTokenId);
-
-        uint256[] memory budget = calculateBudget(_installationIds, _installationQuantities, _instaBuild);
         
-        FarmingOperation memory farmingOperation = FarmingOperation(
-            newOperationId,
-            _landTokenId,
-            _installationIds, 
-            _installationQuantities,
-            _instaBuild,
-            msg.sender,
-            budget,
-            true
-        );
+        FarmingOperation memory farmingOperation = FarmingOperation({
+            operationId: newOperationId,
+            landTokenId: _landTokenId,
+            installationIds: _installationIds, 
+            installationQuantities: _installationQuantities,
+            instaBuild: _instaBuild,
+            landSupplier: msg.sender,
+            budget: calculateBudget(_installationIds, _installationQuantities, _instaBuild),
+            totalShares: _totalShares,
+            sharesForLand: _sharesForLand,
+            shareRatiosForMaterials: _shareRatiosForMaterials,
+            landDeposited: true
+        });
 
         s.farmingOperations[newOperationId] = farmingOperation;
         s.farmingOperationCount++;
     }
 
     function withdrawLandFromOperation(uint256 _operationId, uint256 _tokenId) external {
-        require(address(this) == IAavegotchiRealmDiamond(aavegotchiRealmDiamond).ownerOf(_tokenId), "Smart contract must own the land parcel");
-        require(msg.sender == s.farmingOperations[_operationId].landSupplier, "Sender must be the operation land supplier");
-        require(s.farmingOperations[_operationId].landDeposited == true, "Land must be deposited for this farming operation");
-        require(s.farmingOperations[_operationId].landTokenId == _tokenId, "Land Token ID must match what was deposited for this farming operation");
+        require(msg.sender == s.farmingOperations[_operationId].landSupplier, "CrowdFundingFacet: Error - Sender must be the operation land supplier");
+        require(s.farmingOperations[_operationId].landDeposited, "CrowdFundingFacet: Error - Land must be deposited for this farming operation");
+        require(s.farmingOperations[_operationId].landTokenId == _tokenId, "CrowdFundingFacet: Error - Land Token ID must match what was deposited for this farming operation");
 
         IAavegotchiRealmDiamond(aavegotchiRealmDiamond).safeTransferFrom(address(this), msg.sender, _tokenId);
         s.farmingOperations[_operationId].landDeposited = false;
     }
 
-    function calculateBudget(uint256[] calldata _installationIds, uint256[] calldata _installationQuantities, bool _instaBuild) internal returns(uint256[] memory) {
+    function calculateBudget(uint256[] calldata _installationIds, uint256[] calldata _installationQuantities, bool _instaBuild) internal view returns(uint256[] memory) {
         // todo fix a bug in this implementation. if you add a level 3 installation, you need to go back and add the costs for level 1 and level 2 of that installation aswell, not just level 3
-        uint256[] memory budget = new uint[](5);
+        uint256[] memory budget = new uint256[](5);
         InstallationType[] memory installationTypes = IAavegotchiInstallationDiamond(aavegotchiInstallationDiamond).getInstallationTypes(_installationIds);
 
         for (uint i = 0; i < _installationIds.length; i++) {
