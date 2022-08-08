@@ -55,21 +55,20 @@ contract CrowdFundingFacet {
         // use aavegotchi interfaces to move the land into the smart contract
         IAavegotchiRealmDiamond(aavegotchiRealmDiamond).safeTransferFrom(msg.sender, address(this), _landTokenId);
         
-        FarmingOperation memory farmingOperation = FarmingOperation({
+        s.farmingOperations[newOperationId] = FarmingOperation({
             operationId: newOperationId,
             landTokenId: _landTokenId,
             installationIds: _installationIds, 
             installationQuantities: _installationQuantities,
             instaBuild: _instaBuild,
             landSupplier: msg.sender,
-            budget: calculateBudget(_installationIds, _installationQuantities, _instaBuild),
+            budget: this.calculateBudget(_installationIds, _installationQuantities, _instaBuild),
             totalShares: _totalShares,
             sharesForLand: _sharesForLand,
             shareRatiosForMaterials: _shareRatiosForMaterials,
             landDeposited: true
         });
 
-        s.farmingOperations[newOperationId] = farmingOperation;
         s.farmingOperationCount++;
     }
 
@@ -82,7 +81,9 @@ contract CrowdFundingFacet {
         s.farmingOperations[_operationId].landDeposited = false;
     }
 
-    function calculateBudget(uint256[] calldata _installationIds, uint256[] calldata _installationQuantities, bool _instaBuild) internal view returns(uint256[] memory) {
+    function calculateBudget(
+        uint256[] calldata _installationIds, uint256[] calldata _installationQuantities, bool _instaBuild
+    ) external view returns(uint256[] memory) {
         // todo fix a bug in this implementation. if you add a level 3 installation, you need to go back and add the costs for level 1 and level 2 of that installation aswell, not just level 3
         uint256[] memory budget = new uint256[](5);
         InstallationType[] memory installationTypes = IAavegotchiInstallationDiamond(aavegotchiInstallationDiamond).getInstallationTypes(_installationIds);
