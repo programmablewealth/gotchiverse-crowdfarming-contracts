@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
+import { ERC721Holder } from '@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol';
+
+import { LibDiamond } from "../libraries/LibDiamond.sol";
+import { LibMeta } from "../libraries/LibMeta.sol";
+
 import {
     AppStorage, FarmingOperation,
     aavegotchiRealmDiamond, aavegotchiInstallationDiamond
 } from "../libraries/LibAppStorage.sol";
-
-import { LibDiamond } from "../libraries/LibDiamond.sol";
-import { LibMeta } from "../libraries/LibMeta.sol";
 
 import { IAavegotchiRealmDiamond } from "../interfaces/IAavegotchiRealmDiamond.sol";
 import { IAavegotchiInstallationDiamond, InstallationType } from "../interfaces/IAavegotchiInstallationDiamond.sol";
@@ -16,7 +18,7 @@ import { IAavegotchiInstallationDiamond, InstallationType } from "../interfaces/
 /// @author gotchistats.lens
 /// @notice You can use this contract for creating and manage a Gotchiverse crowd funding farming operation
 
-contract CrowdFundingFacet {
+contract CrowdFundingFacet is ERC721Holder {
     AppStorage internal s;
 
     /// @notice deposits a Gotchiverse land parcel into a smart contract and creates a farming operation
@@ -60,8 +62,7 @@ contract CrowdFundingFacet {
 
         // use aavegotchi interfaces to move the land into the smart contract
         address sender = LibMeta.msgSender();
-        // todo: implement a erc721 receiver
-        // IAavegotchiRealmDiamond(aavegotchiRealmDiamond).safeTransferFrom(sender, address(this), _landTokenId);
+        IAavegotchiRealmDiamond(aavegotchiRealmDiamond).safeTransferFrom(sender, address(this), _landTokenId);
 
         s.farmingOperations[newOperationId] = FarmingOperation({
             operationId: newOperationId,
@@ -80,15 +81,6 @@ contract CrowdFundingFacet {
         s.farmingOperationCount++;
     }
     
-    
-    function incrementCounter() external {
-        s.counter.count++;
-    }
-
-    function getCount() external view returns(uint256) {
-        return s.counter.count;
-    }
-
     function withdrawLandFromOperation(uint256 _operationId, uint256 _tokenId) external {
         address sender = LibMeta.msgSender();
 
