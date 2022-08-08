@@ -24,6 +24,9 @@ struct FarmingOperation {
     bool instaBuild;
     address landSupplier;
     uint256[] budget;
+    uint256 totalShares;
+    uint256 sharesForLand;
+    uint256[] shareRatiosForMaterials;
     bool landDeposited;
 }
 
@@ -37,10 +40,6 @@ library LibAppStorage {
         assembly {
             ds.slot := 0
         }
-    }
-
-    function abs(int256 x) internal pure returns (uint256) {
-        return uint256(x >= 0 ? x : -x);
     }
 }
 
