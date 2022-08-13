@@ -28,4 +28,5 @@ struct InstallationType {
 
 interface IAavegotchiInstallationDiamond {
     function getInstallationTypes(uint256[] calldata _installationTypeIds) external view returns (InstallationType[] memory);
+    function getInstallationType(uint256 _installationTypeId) external view returns (InstallationType memory);
 }

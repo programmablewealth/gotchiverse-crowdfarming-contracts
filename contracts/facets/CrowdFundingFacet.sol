@@ -95,21 +95,56 @@ contract CrowdFundingFacet is ERC721Holder {
     function calculateBudget(
         uint256[] calldata _installationIds, uint256[] calldata _installationQuantities, bool _instaBuild
     ) external view returns(uint256[] memory) {
-        // todo fix a bug in this implementation. if you add a level 3 installation, you need to go back and add the costs for level 1 and level 2 of that installation aswell, not just level 3
         uint256[] memory budget = new uint256[](5);
-        InstallationType[] memory installationTypes = IAavegotchiInstallationDiamond(aavegotchiInstallationDiamond).getInstallationTypes(_installationIds);
 
         for (uint i = 0; i < _installationIds.length; i++) {
-            budget[0] += installationTypes[i].alchemicaCost[0] * _installationQuantities[i];
-            budget[1] += installationTypes[i].alchemicaCost[1] * _installationQuantities[i];
-            budget[2] += installationTypes[i].alchemicaCost[2] * _installationQuantities[i];
-            budget[3] += installationTypes[i].alchemicaCost[3] * _installationQuantities[i];
+            uint256[] memory cost = this.getCummulativeAlchemicaCost(_installationIds[i]);
+
+            budget[0] += cost[0] * _installationQuantities[i];
+            budget[1] += cost[1] * _installationQuantities[i];
+            budget[2] += cost[2] * _installationQuantities[i];
+            budget[3] += cost[3] * _installationQuantities[i];
             if (_instaBuild) {
-                budget[4] += installationTypes[i].craftTime * _installationQuantities[i];
+                budget[4] += cost[4] * _installationQuantities[i];
             }
         }
 
         return budget;
+    }
+
+    function getCummulativeAlchemicaCost(uint256 _installationId) external view returns(uint256[] memory) {
+        uint256[] memory cost = new uint256[](5);
+
+        bool complete = false;
+
+        uint256 nextInstallationId = _installationId;
+        
+        while (!complete) {
+            InstallationType memory installation = IAavegotchiInstallationDiamond(aavegotchiInstallationDiamond).getInstallationType(nextInstallationId);
+            uint256 installationLevel = installation.level;
+        
+            cost[0] += installation.alchemicaCost[0];
+            cost[1] += installation.alchemicaCost[1];
+            cost[2] += installation.alchemicaCost[2];
+            cost[3] += installation.alchemicaCost[3];
+            cost[4] += installation.craftTime;
+
+            if (installationLevel != 1) {
+                nextInstallationId--;
+            } else {
+                complete = true;
+            }
+        }
+
+        return cost;
+    }
+
+    function getFarmingOperationInfo(uint256 _operationId) external view returns (FarmingOperation memory) {
+        return s.farmingOperations[_operationId];
+    }
+
+    function getFarmingOperationCount() external view returns (uint256) {
+        return s.farmingOperationCount;
     }
 
     // function depositERC20IntoOperation(uint256 _operationId, address _tokenAddress, uint256 _amount) {
