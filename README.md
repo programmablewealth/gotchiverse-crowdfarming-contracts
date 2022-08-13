@@ -1,3 +1,26 @@
+# Gotchiverse Trustless Crowd-Farming
+
+This repo conntains the smart contracts for the Gotchiverse Trustless Crowd-Farming Dapp
+
+The front-end UI code is in a [different repo](https://github.com/programmablewealth/gotchiverse-crowdfarming-ui).
+
+[Design Document](https://docs.google.com/document/u/1/d/e/2PACX-1vQGEPCkcAsRF6pA3E0VCK-ACsG22z4bUWDe1zZLDDrgfSLqbsNK_-N-s9KpUwF4j5Uv0j2fUOCtMncW/pub).
+
+## Scope of the Prototype
+
+- [x] Deposit Gotchiverse land parcel (ERC721) into a Crowd Farming operation
+- [ ] Specify the Aaltar, Reservoir, and Harvester installations to be added to the Crowd Farming operation and calculate the Gotchus Alchemica required
+- [ ] Issue shares based on ERC20s contributed for the installation costs
+- [ ] Issue shares based on the contribution of the land parcel
+- [ ] Rent a gotchi to build on land in the smart contract
+- [ ] Verify build is complete on-chain
+- [ ] Rent a gotchi to empty reservoirs on land in the smart contract
+- [ ] Rent a gotchi to channel on land in the smart contract
+- [ ] [User interface](https://github.com/programmablewealth/gotchiverse-crowdfarming-ui) to support the features in the contract detailled above
+
+## Scope of the Full Solution
+See [Design Document](https://docs.google.com/document/u/1/d/e/2PACX-1vQGEPCkcAsRF6pA3E0VCK-ACsG22z4bUWDe1zZLDDrgfSLqbsNK_-N-s9KpUwF4j5Uv0j2fUOCtMncW/pub).
+
 # Diamond-1-Hardhat Implementation
 
 This is a reference implementation for [EIP-2535 Diamonds](https://github.com/ethereum/EIPs/issues/2535). To learn about other implementations go here: https://github.com/mudgen/diamond
