@@ -94,7 +94,7 @@ contract CrowdFundingFacet is ERC721Holder {
 
     function calculateBudget(
         uint256[] calldata _installationIds, uint256[] calldata _installationQuantities, bool _instaBuild
-    ) external view returns(uint256[] memory) {
+    ) public view returns(uint256[] memory) {
         uint256[] memory budget = new uint256[](5);
 
         for (uint i = 0; i < _installationIds.length; i++) {
